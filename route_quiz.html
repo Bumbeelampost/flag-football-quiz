@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flag Football Route Quiz</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #1a4a1a 0%, #2d7a2d 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(0,0,0,0.75);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 780px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        /* Welcome */
+        #welcome-screen { text-align: center; }
+
+        .title {
+            font-size: 2.6em;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 6px rgba(0,0,0,0.5);
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            color: #ccc;
+            margin-bottom: 10px;
+        }
+
+        .welcome-info {
+            color: #aaa;
+            font-size: 0.95em;
+            margin-bottom: 32px;
+        }
+
+        .start-btn {
+            background: #ffd700;
+            color: #1a4a1a;
+            border: none;
+            padding: 15px 44px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .start-btn:hover {
+            background: #ffe84a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(255,215,0,0.35);
+        }
+
+        /* Quiz */
+        #quiz-screen { display: none; }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .question-counter { color: #aaa; font-size: 0.9em; }
+        .score-display { color: #ffd700; font-weight: bold; font-size: 1em; }
+
+        .progress-bar-container {
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            height: 7px;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            background: #ffd700;
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.4s ease;
+        }
+
+        .play-label {
+            display: inline-block;
+            background: #ffd700;
+            color: #1a4a1a;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.82em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .play-title {
+            font-size: 2.2em;
+            font-weight: 900;
+            color: #ffd700;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .image-reveal-label {
+            font-size: 0.78em;
+            color: #aaa;
+            text-align: center;
+            margin-top: 6px;
+            font-style: italic;
+            display: none;
+        }
+
+        .question-text {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 18px;
+            line-height: 1.45;
+            color: #f0f0f0;
+        }
+
+        .play-image-container {
+            margin-bottom: 18px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid rgba(255,215,0,0.25);
+        }
+
+        .play-image { width: 100%; height: auto; display: block; }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .option-btn {
+            background: rgba(255,255,255,0.08);
+            border: 2px solid rgba(255,255,255,0.18);
+            color: white;
+            padding: 13px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            text-align: left;
+            transition: all 0.2s;
+            line-height: 1.35;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: rgba(255,215,0,0.15);
+            border-color: #ffd700;
+            transform: translateY(-1px);
+        }
+
+        .option-btn.correct {
+            background: rgba(0,200,80,0.25);
+            border-color: #00c850;
+            color: #afffcc;
+        }
+
+        .option-btn.wrong {
+            background: rgba(220,50,50,0.25);
+            border-color: #dc3232;
+            color: #ffbbbb;
+        }
+
+        .option-btn:disabled { cursor: default; }
+
+        .feedback {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 14px;
+            font-size: 0.92em;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .feedback.correct {
+            background: rgba(0,200,80,0.15);
+            border: 1px solid #00c850;
+            color: #afffcc;
+        }
+
+        .feedback.wrong {
+            background: rgba(220,50,50,0.15);
+            border: 1px solid #dc3232;
+            color: #ffbbbb;
+        }
+
+        .next-btn {
+            background: #ffd700;
+            color: #1a4a1a;
+            border: none;
+            padding: 12px 0;
+            font-size: 1em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: none;
+            width: 100%;
+        }
+
+        .next-btn:hover { background: #ffe84a; }
+
+        /* Results */
+        #results-screen { display: none; text-align: center; }
+
+        .results-emoji { font-size: 3.8em; margin-bottom: 8px; }
+        .results-title { font-size: 2em; color: #ffd700; font-weight: bold; margin-bottom: 6px; }
+        .results-score { font-size: 3.2em; font-weight: bold; color: white; margin: 16px 0; }
+        .results-message { color: #ccc; font-size: 1.05em; margin-bottom: 24px; }
+
+        .results-breakdown {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .breakdown-title { color: #ffd700; font-weight: bold; margin-bottom: 12px; font-size: 0.95em; }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            font-size: 0.92em;
+            color: #ddd;
+        }
+
+        .breakdown-item:last-child { border-bottom: none; }
+        .bd-correct { color: #7fffb0; font-weight: bold; }
+        .bd-wrong { color: #ffaaaa; font-weight: bold; }
+
+        .restart-btn {
+            background: #ffd700;
+            color: #1a4a1a;
+            border: none;
+            padding: 14px 42px;
+            font-size: 1.1em;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .restart-btn:hover {
+            background: #ffe84a;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Welcome Screen -->
+    <div id="welcome-screen">
+        <div class="title">🏈 Route Quiz</div>
+        <div class="subtitle">Test your knowledge of Plays A, B &amp; C</div>
+        <div class="welcome-info">16 questions · routes, strategies, play mechanics &amp; formation recognition</div>
+        <button class="start-btn" onclick="startQuiz()">Let's Go 🚀</button>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="quiz-screen">
+        <div class="top-bar">
+            <span class="question-counter" id="question-counter">Question 1 of 12</span>
+            <span class="score-display">Score: <span id="score">0</span></span>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+        </div>
+        <div class="play-title" id="play-title">PLAY A</div>
+        <div class="play-label" id="play-label">Play A</div>
+        <div class="question-text" id="question-text"></div>
+        <div class="play-image-container">
+            <img class="play-image" id="play-image" src="" alt="Play diagram" />
+        </div>
+        <div class="image-reveal-label" id="image-reveal-label">📋 Routes revealed after your answer</div>
+        <div class="options-grid" id="options-grid"></div>
+        <div class="feedback" id="feedback"></div>
+        <button class="next-btn" id="next-btn" onclick="nextQuestion()">Next Question →</button>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="results-screen">
+        <div class="results-emoji" id="results-emoji">🏆</div>
+        <div class="results-title">Quiz Complete!</div>
+        <div class="results-score" id="results-score"></div>
+        <div class="results-message" id="results-message"></div>
+        <div class="results-breakdown" id="results-breakdown"></div>
+        <button class="restart-btn" onclick="restartQuiz()">Play Again 🔄</button>
+    </div>
+
+</div>
+<script>
+    const questions = [
+        // ── PLAY A ──
+        {
+            play: "Play A",
+            blankImage: "Play A/Play A Blank.png",
+            image: "Play A/Play A.png",
+            question: "What is the purpose of RB1 and RB2's routes in Play A?",
+            options: [
+                "Block for the quarterback",
+                "Fake receiving a handoff to freeze the defense",
+                "Run go routes to stretch the defense deep",
+                "Screen block for Player 1"
+            ],
+            answer: 1,
+            explanation: "RB1 and RB2 both act like they've received a handoff, freezing the defense. The QB can give to either one — or keep it and throw to Player 1, 2, or C."
+        },
+        {
+            play: "Play A",
+            blankImage: "Play A/Play A Blank.png",
+            image: "Play A/Play A.png",
+            question: "What route does Player 1 run in Play A?",
+            options: [
+                "Corner route",
+                "Curl / comeback route",
+                "Straight go route",
+                "Out route"
+            ],
+            answer: 2,
+            explanation: "Player 1 runs straight up the far left sideline — a deep go route to stretch the defense vertically."
+        },
+        {
+            play: "Play A",
+            blankImage: "Play A/Play A Blank.png",
+            image: "Play A/Play A.png",
+            question: "What route does the Center (C) run in Play A?",
+            options: [
+                "Straight go route upfield",
+                "Curl / comeback route",
+                "Corner route to the outside",
+                "Crossing route"
+            ],
+            answer: 1,
+            explanation: "C runs a curl/comeback, giving the QB a reliable short-to-mid option in the middle of the field."
+        },
+        {
+            play: "Play A",
+            blankImage: "Play A/Play A Blank.png",
+            image: "Play A/Play A.png",
+            question: "Players 2 and 3 both run corner routes. Which runs the DEEPER route?",
+            options: [
+                "Player 2",
+                "Player 3",
+                "Both break at the same depth",
+                "Neither runs a corner route"
+            ],
+            answer: 1,
+            explanation: "Player 3 is positioned further outside and runs a deeper corner, while Player 2 breaks earlier at a shorter depth."
+        },
+        // ── PLAY B ──
+        {
+            play: "Play B",
+            blankImage: "Play B/Play B Blank.png",
+            image: "Play B/Play B.png",
+            question: "What is the strategic purpose of C and Player 5 running near each other in Play B?",
+            options: [
+                "To double-team a defender",
+                "A rub/pick concept to confuse man-to-man defenders",
+                "To vertically stretch the field together",
+                "To set up a screen for the QB"
+            ],
+            answer: 1,
+            explanation: "C sweeps right while Player 5 runs an out route through the same area. In man coverage, the defenders get tangled chasing their guys — opening one of them up easily."
+        },
+        {
+            play: "Play B",
+            blankImage: "Play B/Play B Blank with Dotted.png",
+            image: "Play B/Play B.png",
+            question: "What does the dotted line represent in Play B?",
+            options: [
+                "A handoff from C to Player 4",
+                "A blocking assignment for Player 4",
+                "Pre-snap motion by Player 4",
+                "A scramble option for the QB"
+            ],
+            answer: 2,
+            explanation: "The dotted line shows Player 4 going in motion before the snap — a misdirection element designed to shift defensive attention."
+        },
+        {
+            play: "Play B",
+            blankImage: "Play B/Play B Blank.png",
+            image: "Play B/Play B.png",
+            question: "How many players run straight go routes in Play B?",
+            options: ["1", "2", "3", "4"],
+            answer: 2,
+            explanation: "Players 1, 2, and 3 all run straight go routes, putting three deep threats on the field and stretching the defense down the field."
+        },
+        {
+            play: "Play B",
+            blankImage: "Play B/Play B Blank.png",
+            image: "Play B/Play B.png",
+            question: "Which two players work together as the combination route concept in Play B?",
+            options: [
+                "Players 1 and 2",
+                "Players 2 and 3",
+                "C and Player 5",
+                "Player 4 and Player 5"
+            ],
+            answer: 2,
+            explanation: "C and Player 5 deliberately run their routes through the same area to create the rub/pick and free one of them from their defender."
+        },
+        // ── PLAY C ──
+        {
+            play: "Play C",
+            blankImage: "Play C/Play C Blank.png",
+            image: "Play C/Play C.png",
+            question: "What does the dotted line in Play C represent?",
+            options: [
+                "Pre-snap motion by a receiver",
+                "A blocking assignment",
+                "The option for a handoff",
+                "A fake route by RB1"
+            ],
+            answer: 2,
+            explanation: "The dotted line signals an optional handoff — it's a read for the QB, not a guaranteed give."
+        },
+        {
+            play: "Play C",
+            blankImage: "Play C/Play C Blank.png",
+            image: "Play C/Play C.png",
+            question: "If RB1 receives the ball in Play C, what are they supposed to do?",
+            options: [
+                "Run straight upfield as fast as possible",
+                "Draw defensive attention and hand off to RB2",
+                "Throw a pass to an open receiver",
+                "Block for the quarterback"
+            ],
+            answer: 1,
+            explanation: "RB1 acts as the primary ball carrier to draw defenders in, then flips it to RB2 — who should have more open space after the misdirection."
+        },
+        {
+            play: "Play C",
+            blankImage: "Play C/Play C Blank.png",
+            image: "Play C/Play C.png",
+            question: "What route does Player 3 run in Play C?",
+            options: [
+                "Straight go route",
+                "Curl / comeback route",
+                "Corner / out route breaking left",
+                "Straight crossing route"
+            ],
+            answer: 2,
+            explanation: "Player 3 runs upfield then breaks left on a corner/out route — a mid-to-deep option on the right side of the field."
+        },
+        {
+            play: "Play C",
+            blankImage: "Play C/Play C Blank.png",
+            image: "Play C/Play C.png",
+            question: "What is the main strategic advantage of the RB1 → RB2 double handoff in Play C?",
+            options: [
+                "It guarantees a big gain every time",
+                "RB1 draws defenders in, freeing RB2 for an open lane",
+                "It gives the QB extra time to find an open receiver",
+                "It confuses the offense's own blocking assignments"
+            ],
+            answer: 1,
+            explanation: "RB1's run pulls defenders toward them first — once they've committed, RB2 takes the handoff with a much cleaner path to work with."
+        },
+
+        // ── TEXT ONLY ──
+        {
+            play: "Play B",
+            noImage: true,
+            hidePlayInfo: false,
+            question: "Which play features a pre-snap motion by one of its players?",
+            options: ["Play A", "Play B", "Play C", "All of the above"],
+            answer: 1,
+            explanation: "Play B uses a pre-snap motion by Player 4 — shown by the dotted line on the diagram. It's designed to shift defensive attention before the snap."
+        },
+
+        // ── GUESS THE PLAY ──
+        {
+            play: "Play A",
+            blankImage: "Play A/Play A Blank.png",
+            image: "Play A/Play A.png",
+            hidePlayInfo: true,
+            question: "Based on the player formation, which play is this?",
+            options: ["Play A", "Play B", "Play C", "Not enough information"],
+            answer: 0,
+            explanation: "This is Play A — recognized by the 4 players on the line (1, C, 2, 3) with R1 and R2 lined up together in the backfield behind the QB."
+        },
+        {
+            play: "Play B",
+            blankImage: "Play B/Play B Blank.png",
+            image: "Play B/Play B.png",
+            hidePlayInfo: true,
+            question: "Based on the player formation, which play is this?",
+            options: ["Play A", "Play B", "Play C", "Not enough information"],
+            answer: 1,
+            explanation: "This is Play B — the only play with 5 receivers spread across the line (Players 1, 2, C, 3, 4, 5) and no running backs in the backfield."
+        },
+        {
+            play: "Play C",
+            blankImage: "Play C/Play C Blank.png",
+            image: "Play C/Play C.png",
+            hidePlayInfo: true,
+            question: "Based on the player formation, which play is this?",
+            options: ["Play A", "Play B", "Play C", "Not enough information"],
+            answer: 2,
+            explanation: "This is Play C — identified by RB1 and RB2 in the backfield alongside the QB, with 3 receivers (Players 1, 2, 3) and the Center on the line."
+        }
+    ];
+
+    let currentQuestion = 0;
+    let score = 0;
+    let answered = false;
+    let answerRecord = [];
+
+    function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function startQuiz() {
+        shuffle(questions);
+        document.getElementById('welcome-screen').style.display = 'none';
+        document.getElementById('quiz-screen').style.display = 'block';
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        const q = questions[currentQuestion];
+        answered = false;
+
+        document.getElementById('question-counter').textContent = `Question ${currentQuestion + 1} of ${questions.length}`;
+        document.getElementById('progress-bar').style.width = `${(currentQuestion / questions.length) * 100}%`;
+        document.getElementById('question-text').textContent = q.question;
+        document.getElementById('score').textContent = score;
+        document.getElementById('image-reveal-label').style.display = 'none';
+
+        // Show or hide image container
+        const imgContainer = document.querySelector('.play-image-container');
+        if (q.noImage) {
+            imgContainer.style.display = 'none';
+        } else {
+            imgContainer.style.display = 'block';
+            document.getElementById('play-image').src = q.blankImage;
+        }
+
+        // Hide or show play identity based on question type
+        if (q.hidePlayInfo) {
+            document.getElementById('play-title').style.visibility = 'hidden';
+            document.getElementById('play-label').style.visibility = 'hidden';
+        } else {
+            document.getElementById('play-title').textContent = q.play.toUpperCase();
+            document.getElementById('play-label').textContent = q.play;
+            document.getElementById('play-title').style.visibility = 'visible';
+            document.getElementById('play-label').style.visibility = 'visible';
+        }
+
+        const grid = document.getElementById('options-grid');
+        grid.innerHTML = '';
+        q.options.forEach((opt, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = `${String.fromCharCode(65 + i)}. ${opt}`;
+            btn.onclick = () => selectAnswer(i);
+            grid.appendChild(btn);
+        });
+
+        document.getElementById('feedback').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'none';
+    }
+
+    function selectAnswer(idx) {
+        if (answered) return;
+        answered = true;
+
+        const q = questions[currentQuestion];
+        const buttons = document.querySelectorAll('.option-btn');
+        const feedback = document.getElementById('feedback');
+
+        buttons.forEach(b => b.disabled = true);
+        buttons[q.answer].classList.add('correct');
+
+        // Swap to full route image after answering (if question has an image)
+        if (!q.noImage) {
+            document.getElementById('play-image').src = q.image;
+            document.getElementById('image-reveal-label').style.display = 'block';
+        }
+
+        // Always reveal play identity after answering
+        document.getElementById('play-title').textContent = q.play.toUpperCase();
+        document.getElementById('play-label').textContent = q.play;
+        document.getElementById('play-title').style.visibility = 'visible';
+        document.getElementById('play-label').style.visibility = 'visible';
+
+        if (idx === q.answer) {
+            score++;
+            document.getElementById('score').textContent = score;
+            feedback.className = 'feedback correct';
+            feedback.innerHTML = `✅ <strong>Correct!</strong> ${q.explanation}`;
+            answerRecord.push({ play: q.play, correct: true });
+        } else {
+            buttons[idx].classList.add('wrong');
+            feedback.className = 'feedback wrong';
+            feedback.innerHTML = `❌ <strong>Not quite.</strong> ${q.explanation}`;
+            answerRecord.push({ play: q.play, correct: false });
+        }
+
+        feedback.style.display = 'block';
+        const nextBtn = document.getElementById('next-btn');
+        nextBtn.textContent = currentQuestion < questions.length - 1 ? 'Next Question →' : 'See Results 🏆';
+        nextBtn.style.display = 'block';
+    }
+
+    function nextQuestion() {
+        currentQuestion++;
+        if (currentQuestion < questions.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('results-screen').style.display = 'block';
+        document.getElementById('progress-bar').style.width = '100%';
+
+        const pct = Math.round((score / questions.length) * 100);
+        document.getElementById('results-score').textContent = `${score} / ${questions.length}`;
+
+        let emoji, msg;
+        if (pct === 100) { emoji = '🏆'; msg = "Perfect score! You know these plays inside and out!"; }
+        else if (pct >= 75) { emoji = '🎉'; msg = "Great job! You've got a solid grasp of the playbook."; }
+        else if (pct >= 50) { emoji = '👍'; msg = "Not bad! A bit more review and you'll have these locked in."; }
+        else               { emoji = '📋'; msg = "Keep studying — you'll get there!"; }
+
+        document.getElementById('results-emoji').textContent = emoji;
+        document.getElementById('results-message').textContent = msg;
+
+        const playScores = { 'Play A': {c:0,t:0}, 'Play B': {c:0,t:0}, 'Play C': {c:0,t:0} };
+        questions.forEach((q, i) => {
+            playScores[q.play].t++;
+            if (answerRecord[i] && answerRecord[i].correct) playScores[q.play].c++;
+        });
+
+        let html = '<div class="breakdown-title">Results by Play</div>';
+        Object.entries(playScores).forEach(([play, d]) => {
+            const p = Math.round((d.c / d.t) * 100);
+            const cls = p >= 75 ? 'bd-correct' : 'bd-wrong';
+            html += `<div class="breakdown-item"><span>${play}</span><span class="${cls}">${d.c}/${d.t} (${p}%)</span></div>`;
+        });
+        document.getElementById('results-breakdown').innerHTML = html;
+    }
+
+    function restartQuiz() {
+        currentQuestion = 0; score = 0; answered = false; answerRecord = [];
+        shuffle(questions);
+        document.getElementById('results-screen').style.display = 'none';
+        document.getElementById('quiz-screen').style.display = 'block';
+        loadQuestion();
+    }
+</script>
+</body>
+</html>
